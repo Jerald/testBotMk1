@@ -13,11 +13,12 @@ const mcServerIP = process.env.MC_SERVER_ADDRESS;
 const mcServerPort = process.env.MC_SERVER_PORT;
 
 const mongoURI = process.env.MONGODB_URI;
-const mongoConnectionTimeout = process.env.MONGODB_TIMEOUT;
+const mongoConnectionTimeout = parseInt(process.env.MONGODB_TIMEOUT);
 
 const admins = process.env.ADMIN_LIST.split(', ');
 
 console.log('Allowable commands ' + process.env.COMMAND_LIST);
+console.log('Timeout duration: ' + mongoConnectionTimeout);
 
 // Database
 var database = null;
