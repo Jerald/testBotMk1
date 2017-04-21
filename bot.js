@@ -118,14 +118,14 @@ function deleteMessage (message) {
 		.catch(console.error);
 }
 
-function getPermission (message, command) {
+function getPermission (message, command, callback) {
 	commandPermissions.findOne({'command': command}, {}, (error, item) => {
-		if (error) {
+		if (error || item === null) {
 			sendMessage(message, 'Error in locating document. @Oscar please fix me.');
 			console.log(error);
 		}
 
-		return item.enabled;
+		callback(item.enabled);
 	});
 }
 // Helper Functions
@@ -144,7 +144,19 @@ bot.on('message', (message) => {
 		let args = parseArgs(message);
 
 		if (commandList.includes(args[0])) {
-			commands[args[0]](message, args);
+			if (permissionControlledCommands.includes(args[0])) {
+				console.log('test');
+
+				getPermission(message, args[0], (permission) => {
+					if (permission === false) {
+						sendMessage(message, 'You\'re not allowed to use that command!');
+					} else {
+						commands[args[0]](message, args);
+					}
+				});
+			} else {
+				commands[args[0]](message, args);
+			}
 		} else {
 			sendMessage(message, 'Unknown command. Please use **' + commandCharacter + 'help** for a list of commands');
 		}
@@ -191,10 +203,7 @@ commands.mcping = function (message, args) {
 			return;
 		}
 
-		let contents = 'The server has ' + response.players.online + ' players online out of ' + response.players.max + '\n';
-		contents += 'The players are: ';
-
-		console.log(typeof response.players.sample);
+		let contents = 'The server has ' + response.players.online + ' players online out of ' + response.players.max + '\n' + 'The players are: ';
 
 		for (let i = 0; i < response.players.sample.length - 1; i++) {
 			contents += response.players.sample[i].name + ', ';
