@@ -2,7 +2,7 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const bot = new Discord.Client();
 
-const path = './';
+const path = './config/';
 const tokenFileName = 'token.txt';
 const commandsFileName = 'commands.txt';
 const commandCharacter = '>';
