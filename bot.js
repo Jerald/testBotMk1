@@ -72,7 +72,7 @@ bot.on('message', (message) => {
 commands.help = function (message, args) {
 	let contents = '';
 
-	contents += 'testBotMk1: A cool discord.js bot for doign cool things\n';
+	contents += 'testBotMk1: A cool discord.js bot for doing cool things\n';
 	contents += '\n';
 	contents += commandCharacter + 'help - Shows this\n';
 	contents += commandCharacter + 'ping - Prints \'pong\'\n';
