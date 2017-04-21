@@ -3,12 +3,14 @@ const mcping = require('mc-ping-updated');
 
 const bot = new Discord.Client();
 
-const mcServerIP = '172.93.48.238';
-const mcServerPort = 25565;
-
 const commandCharacter = process.env.COMMAND_CHAR;
 var messageList = process.env.COMMAND_LIST.split(', ');
 var token = process.env.DISCORD_TOKEN;
+
+const mcServerIP = process.env.MC_SERVER_ADDRESS;
+const mcServerPort = process.env.MC_SERVER_PORT;
+
+console.log('Permissable messages: ' + process.env.COMMAND_LIST);
 
 // Helper Functions
 // function print (value) {
@@ -87,13 +89,10 @@ commands.delspeak = function (message, args) {
 };
 
 commands.mcping = function (message, args) {
-	//sendMessage(message, 'Command under construction, please try again later.');
-	//return;
-
 	mcping(mcServerIP, mcServerPort, function (error, response) {
 		if (error) {
-			console.log('ERROR ERROR ERROR');
 			console.error(error);
+			sendMessage(message, 'It\'s dead jim.\nGet Oscar to check the logs if the server isn\'t actually dead.');
 			return;
 		}
 
@@ -103,12 +102,12 @@ commands.mcping = function (message, args) {
 		console.log(typeof response.players.sample);
 
 		for (let i = 0; i < response.players.sample.length - 1; i++) {
-			contents += response.players.sample[i] + ', ';
+			contents += response.players.sample[i].name + ', ';
 		}
-		contents += response.players.sample[response.players.sample.length - 1];
+		contents += response.players.sample[response.players.sample.length - 1].name;
 
 		sendMessage(message, contents);
-	}, 10000);
+	}, 3000);
 };
 
 bot.login(token);
