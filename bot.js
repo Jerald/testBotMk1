@@ -175,7 +175,8 @@ commands.help = function (message, args) {
 	contents += '**' + commandCharacter + 'help** - Shows this\n';
 	contents += '**' + commandCharacter + 'ping** - Prints \'pong\'\n';
 	contents += '**' + commandCharacter + 'delspeak <words>** - Prints out **<words>** and then deletes the original message\n';
-	contents += '**' + commandCharacter + 'enabled <command> (**"true"**|**"false"**)** - Sets whether or not **<command>** is usable. Requires bot admin status.';
+	contents += '**' + commandCharacter + 'enabled <command> (**"true"**|**"false"**)** - Sets whether or not **<command>** is usable. Requires bot admin status\n';
+	contents += '**' + commandCharacter + 'mcping** - Pings the minecraft server and says what users are online';
 
 	sendMessage(message, contents);
 };
@@ -196,20 +197,27 @@ commands.delspeak = function (message, args) {
 };
 
 commands.mcping = function (message, args) {
-	MCping(mcServerIP, mcServerPort, function (error, response) {
-		if (error) {
+	MCping(mcServerIP, mcServerPort, (error, response) => {
+		if (error || response == null) {
+			print(1);
 			console.error(error);
 			sendMessage(message, 'It\'s dead jim.\nGet Oscar to check the logs if the server isn\'t actually dead.');
 			return;
 		}
 
-		let contents = 'The server has ' + response.players.online + ' players online out of ' + response.players.max + '\n' + 'The players are: ';
+		let contents = '';
+		if (response.players.online > 0) {
+			contents = 'The server has ' + response.players.online + ' player(s) online out of ' + response.players.max + '\n' + 'The player(s) are: ';
 
-		for (let i = 0; i < response.players.sample.length - 1; i++) {
-			contents += response.players.sample[i].name + ', ';
+			for (let i = 0; i < response.players.sample.length - 1; i++) {
+				contents += response.players.sample[i].name + ', ';
+			}
+			contents += response.players.sample[response.players.sample.length - 1].name;
+
+		} else {
+			contents = 'The server is currently empty.';
 		}
-		contents += response.players.sample[response.players.sample.length - 1].name;
-
+		
 		sendMessage(message, contents);
 	}, 3000);
 };
