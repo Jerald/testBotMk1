@@ -69,6 +69,18 @@ bot.on('message', (message) => {
 // Bot Functions
 
 // Message functions
+commands.help = function (message, args) {
+	let contents = '';
+
+	contents += 'testBotMk1: A cool discord.js bot for doign cool things\n';
+	contents += '\n';
+	contents += commandCharacter + 'help - Shows this\n';
+	contents += commandCharacter + 'ping - Prints \'pong\'\n';
+	contents += commandCharacter + 'delspeak <words> - Prints out <words> and then deletes the original message\n';
+
+	sendMessage(message, contents);
+};
+
 commands.ping = function (message, args) {
 	message.channel.sendMessage('pong');
 };
@@ -81,12 +93,7 @@ commands.delspeak = function (message, args) {
 	contents += (args[args.length - 1]);
 
 	sendMessage(message, contents);
-
 	deleteMessage(message);
-};
-
-commands.del = function (message, args) {
-	message.delete();
 };
 
 bot.login(token);
