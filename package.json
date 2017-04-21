@@ -11,7 +11,7 @@
     "discord.js": "^11.0.0",
     "mc-ping-updated": "^0.1.0",
     "mongodb": "^2.2.26",
-    "node-opus": "^0.2.6",
+    "node-opus": "^0.2.6"
   },
   "devDependencies": {},
   "scripts": {
