@@ -1,16 +1,82 @@
 const Discord = require('discord.js');
-const mcping = require('mc-ping-updated');
+const MCping = require('mc-ping-updated');
+const MongoClient = require('mongodb').MongoClient;
+const sleep = require('sleep');
 
 const bot = new Discord.Client();
 
 const commandCharacter = process.env.COMMAND_CHAR;
-var messageList = process.env.COMMAND_LIST.split(', ');
-var token = process.env.DISCORD_TOKEN;
+const commandList = process.env.COMMAND_LIST.split(', ');
+const token = process.env.DISCORD_TOKEN;
 
 const mcServerIP = process.env.MC_SERVER_ADDRESS;
 const mcServerPort = process.env.MC_SERVER_PORT;
 
-console.log('Permissable messages: ' + process.env.COMMAND_LIST);
+const mongoURI = process.env.MONGODB_URI;
+
+const admins = process.env.ADMIN_LIST.split(', ');
+
+console.log('Allowable commands ' + process.env.COMMAND_LIST);
+
+// Database
+var database = null;
+MongoClient.connect(mongoURI, (error, db) => {
+	if (error) {
+		console.log('ERROR ERROR ERROR');
+		console.log('Database connection failure');
+		throw error;
+	}
+	console.log('test1');
+	database = db;
+});
+
+sleep.sleep(3);
+if (database === null) {
+	console.log('Database timeout');
+	throw 'ERROR';
+}
+
+var commandPermissions = null;
+database.collection('commandPermissions', null, (error, collection) => {
+	if (error) {
+		console.log('commandPermissions collection does not exist (presumably that\'s the error)');
+		return;
+	}
+	commandPermissions = collection;
+});
+
+if (commandPermissions === null) {
+	database.createCollection('commandPermissions', (error, collection) => {
+		if (error) {
+			console.log('Failed to create new commandPermissions, something bad it happening...');
+			throw error;
+		}
+		commandPermissions = collection;
+	});
+}
+// Database
+
+// Permissions
+const permissionControlledCommands = process.env.PERMISSION_COMMANDS.split(', ');
+
+for (var command in permissionControlledCommands) {
+	commandPermissions.findOne({'command': command}, null, (error, result) => {
+		if (error) {
+			console.log('Unable to find permission document for command "' + command + '"');
+			console.log('Creating entry...');
+			commandPermissions.insert({'command': command, 'enabled': true}, null, (error, item) => {
+				if (error) {
+					console.log('Error creating new entry');
+					throw error;
+				}
+			});
+
+			console.log('Entry created!');
+		}
+	});
+}
+
+// Permissions
 
 // Helper Functions
 // function print (value) {
@@ -23,7 +89,7 @@ function parseArgs (message) {
 
 function sendMessage (message, contents) {
 	message.channel.sendMessage(contents)
-		.then(msg => console.log('Sent message: ' + contents + '\n' + 'To: ' + message.guild.name + ' in ' + message.channel.name))
+		.then(msg => console.log('Sent message: \'' + contents + '\' to channel ' + message.channel.name + ' in server ' + message.guild.name))
 		.catch(function () {
 			console.error;
 			sendMessage(message, 'ERROR ERROR ERROR');
@@ -32,7 +98,7 @@ function sendMessage (message, contents) {
 
 function deleteMessage (message) {
 	message.delete()
-		.then(msg => console.log('Deleted message from ' + msg.author.username))
+		.then(msg => console.log('Deleted message by ' + msg.author.username + ' in channel ' + message.channel.name + ' in server ' + message.guild.name))
 		.catch(console.error);
 }
 // Helper Functions
@@ -47,11 +113,10 @@ bot.on('message', (message) => {
 		return;
 	}
 
-	console.log(message.content[0]);
 	if (message.content[0] === commandCharacter) {
 		let args = parseArgs(message);
 
-		if (messageList.includes(args[0])) {
+		if (commandList.includes(args[0])) {
 			commands[args[0]](message, args);
 		}
 	}
@@ -74,7 +139,7 @@ commands.help = function (message, args) {
 };
 
 commands.ping = function (message, args) {
-	message.channel.sendMessage('pong');
+	sendMessage(message, 'pong');
 };
 
 commands.delspeak = function (message, args) {
@@ -89,7 +154,7 @@ commands.delspeak = function (message, args) {
 };
 
 commands.mcping = function (message, args) {
-	mcping(mcServerIP, mcServerPort, function (error, response) {
+	MCping(mcServerIP, mcServerPort, function (error, response) {
 		if (error) {
 			console.error(error);
 			sendMessage(message, 'It\'s dead jim.\nGet Oscar to check the logs if the server isn\'t actually dead.');
@@ -108,6 +173,14 @@ commands.mcping = function (message, args) {
 
 		sendMessage(message, contents);
 	}, 3000);
+};
+
+commands.enabled = function (message, args) {
+	if (admins.includes(message.author.username)) {
+		if (permissionControlledCommands.includes(args[1])) {
+
+		}
+	}
 };
 
 bot.login(token);
