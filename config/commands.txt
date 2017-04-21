@@ -2,4 +2,3 @@ test
 ping
 help
 delspeak
-del
