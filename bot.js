@@ -13,6 +13,7 @@ const mcServerIP = process.env.MC_SERVER_ADDRESS;
 const mcServerPort = process.env.MC_SERVER_PORT;
 
 const mongoURI = process.env.MONGODB_URI;
+const mongoConnectionTimeout = process.env.MONGODB_TIMEOUT;
 
 const admins = process.env.ADMIN_LIST.split(', ');
 
@@ -30,7 +31,7 @@ MongoClient.connect(mongoURI, (error, db) => {
 	database = db;
 });
 
-sleep.sleep(3);
+sleep.sleep(mongoConnectionTimeout);
 if (database === null) {
 	console.log('Database timeout');
 	throw 'ERROR';
