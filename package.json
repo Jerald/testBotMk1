@@ -1,0 +1,30 @@
+{
+  "name": "test_bot_mk1",
+  "version": "1.0.0",
+  "description": "Cool discord.js bot for doing cool things",
+  "main": "bot.js",
+  "engines": {
+    "node": "6.10.2",
+    "npm": "3.10.10"
+  },
+  "dependencies": {
+    "discord.js": "^11.0.0",
+    "mc-ping-updated": "^0.1.0",
+    "mongodb": "^2.2.26",
+    "node-opus": "^0.2.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lokosmos/testBotMk1.git"
+  },
+  "author": "Oscar",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Lokosmos/testBotMk1/issues"
+  },
+  "homepage": "https://github.com/Lokosmos/testBotMk1#readme"
+}
