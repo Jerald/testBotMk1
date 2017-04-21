@@ -87,8 +87,8 @@ commands.delspeak = function (message, args) {
 };
 
 commands.mcping = function (message, args) {
-	sendMessage(message, 'Command under construction, please try again later.');
-	return;
+	//sendMessage(message, 'Command under construction, please try again later.');
+	//return;
 
 	mcping(mcServerIP, mcServerPort, function (error, response) {
 		if (error) {
