@@ -12,7 +12,6 @@
     "mc-ping-updated": "^0.1.0",
     "mongodb": "^2.2.26",
     "node-opus": "^0.2.6",
-    "sleep": "^5.1.1"
   },
   "devDependencies": {},
   "scripts": {
