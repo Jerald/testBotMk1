@@ -92,6 +92,7 @@ commands.mcping = function (message, args) {
 
 	mcping(mcServerIP, mcServerPort, function (error, response) {
 		if (error) {
+			console.log('ERROR ERROR ERROR');
 			console.error(error);
 			return;
 		}
