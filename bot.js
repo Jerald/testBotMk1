@@ -1,30 +1,19 @@
-const fs = require('fs');
 const Discord = require('discord.js');
+const mcping = require('mc-ping-updated');
+
 const bot = new Discord.Client();
 
-const path = './config/';
-const tokenFileName = 'token.txt';
-const commandsFileName = 'commands.txt';
-const commandCharacter = '>';
+const mcServerIP = '172.93.48.238';
+const mcServerPort = 25565;
 
-const token = fs.readFileSync(path + tokenFileName, 'utf8');
-
-var commands = {};
-
-var messageList;
-fs.readFile(path + commandsFileName, 'utf8', (error, data) => {
-	if (error) throw error;
-
-	messageList = data.split('\r\n');
-	console.log('Messages: ');
-	console.log(messageList);
-	console.log();
-});
+const commandCharacter = process.env.COMMAND_CHAR;
+var messageList = process.env.COMMAND_LIST.split(', ');
+var token = process.env.DISCORD_TOKEN;
 
 // Helper Functions
-function print (value) {
-	console.log('test' + value);
-}
+// function print (value) {
+// 	console.log('test' + value);
+// }
 
 function parseArgs (message) {
 	return message.content.substring(1, message.content.length).split(' ');
@@ -33,7 +22,6 @@ function parseArgs (message) {
 function sendMessage (message, contents) {
 	message.channel.sendMessage(contents)
 		.then(msg => console.log('Sent message: ' + contents + '\n' + 'To: ' + message.guild.name + ' in ' + message.channel.name))
-
 		.catch(function () {
 			console.error;
 			sendMessage(message, 'ERROR ERROR ERROR');
@@ -69,6 +57,8 @@ bot.on('message', (message) => {
 // Bot Functions
 
 // Message functions
+var commands = {};
+
 commands.help = function (message, args) {
 	let contents = '';
 
@@ -94,6 +84,30 @@ commands.delspeak = function (message, args) {
 
 	sendMessage(message, contents);
 	deleteMessage(message);
+};
+
+commands.mcping = function (message, args) {
+	sendMessage(message, 'Command under construction, please try again later.');
+	return;
+
+	mcping(mcServerIP, mcServerPort, function (error, response) {
+		if (error) {
+			console.error(error);
+			return;
+		}
+
+		let contents = 'The server has ' + response.players.online + ' players online out of ' + response.players.max + '\n';
+		contents += 'The players are: ';
+
+		console.log(typeof response.players.sample);
+
+		for (let i = 0; i < response.players.sample.length - 1; i++) {
+			contents += response.players.sample[i] + ', ';
+		}
+		contents += response.players.sample[response.players.sample.length - 1];
+
+		sendMessage(message, contents);
+	}, 10000);
 };
 
 bot.login(token);
