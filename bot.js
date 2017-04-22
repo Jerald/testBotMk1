@@ -32,6 +32,8 @@ MongoClient.connect(mongoURI, (error, db) => {
 });
 
 var commandPermissions = null;
+// TODO: Implement user collection in the database
+var userInfoCollection = null;
 function databaseSetup () {
 	if (database === null) {
 		console.log('Database error');
@@ -49,7 +51,7 @@ function databaseSetup () {
 	if (commandPermissions === null) {
 		database.createCollection('commandPermissions', (error, collection) => {
 			if (error) {
-				console.log('Failed to create new commandPermissions, something bad it happening...');
+				console.log('Failed to create new commandPermissions, something bad is happening...');
 				throw error;
 			}
 			commandPermissions = collection;
@@ -100,7 +102,13 @@ function print (value) {
 }
 
 function parseArgs (message) {
-	return message.content.substring(1, message.content.length).split(' ');
+	let args = message.content.substring(1, message.content.length).split(' ');
+
+	for (let i = 0; i < args.length; i++) {
+		args[i] = args[i].toLowerCase();
+	}
+
+	return args;
 }
 
 function sendMessage (message, contents) {
@@ -128,6 +136,19 @@ function getPermission (message, command, callback) {
 		callback(item.enabled);
 	});
 }
+
+function isNumber (value) {
+	return !isNaN(value);
+}
+
+function correctNumberOfArgs (message, args, number) {
+	if (args.length > number) {
+		sendMessage(message, 'Invalid number of arguments. Check out the help function by sending **' + commandCharacter + 'help** to figure out how to use this command.');
+		return false;
+	}
+
+	return true;
+}
 // Helper Functions
 
 // Bot Functions
@@ -144,7 +165,7 @@ bot.on('message', (message) => {
 		let args = parseArgs(message);
 
 		if (commandList.includes(args[0])) {
-			if (permissionControlledCommands.includes(args[0])) {
+			if (permissionControlledCommands.includes(args[0]) && admins.includes(message.author.username) === false) {
 				console.log('test');
 
 				getPermission(message, args[0], (permission) => {
@@ -158,7 +179,7 @@ bot.on('message', (message) => {
 				commands[args[0]](message, args);
 			}
 		} else {
-			sendMessage(message, 'Unknown command. Please use **' + commandCharacter + 'help** for a list of commands');
+			sendMessage(message, 'Unknown command. Please use `' + commandCharacter + 'help` for a list of commands');
 		}
 	}
 });
@@ -172,11 +193,13 @@ commands.help = function (message, args) {
 
 	contents += 'testBotMk1: A cool discord.js bot for doing cool things\n';
 	contents += '\n';
-	contents += '**' + commandCharacter + 'help** - Shows this\n';
-	contents += '**' + commandCharacter + 'ping** - Prints \'pong\'\n';
-	contents += '**' + commandCharacter + 'delspeak <words>** - Prints out **<words>** and then deletes the original message\n';
-	contents += '**' + commandCharacter + 'enabled <command> (**"true"**|**"false"**)** - Sets whether or not **<command>** is usable. Requires bot admin status\n';
-	contents += '**' + commandCharacter + 'mcping** - Pings the minecraft server and says what users are online';
+	contents += '`' + commandCharacter + 'help`- Shows this\n';
+	contents += '`' + commandCharacter + 'ping`- Prints \'pong\'\n';
+	contents += '`' + commandCharacter + 'delspeak <words>` - Prints out `<words>` and then deletes the original message\n';
+	contents += '`' + commandCharacter + 'enabled <command> (true|false)` - Sets whether or not `<command>` is usable. Requires bot admin status\n';
+	contents += '`' + commandCharacter + 'mcping` - Pings the minecraft server and says what users are online\n';
+	contents += '`' + commandCharacter + 'xkcd <number>` - Shows the xkcd comic whose number is `<number>`. If no `<number>` is given, shows the most recent comic\n';
+	contents += '`' + commandCharacter + 'delete <number>` - Deletes `<number>` of messages. If no `<number>` is given, deletes the most recent message\n';
 
 	sendMessage(message, contents);
 };
@@ -213,25 +236,77 @@ commands.mcping = function (message, args) {
 				contents += response.players.sample[i].name + ', ';
 			}
 			contents += response.players.sample[response.players.sample.length - 1].name;
-
 		} else {
 			contents = 'The server is currently empty.';
 		}
-		
+
 		sendMessage(message, contents);
 	}, 3000);
 };
 
 commands.enabled = function (message, args) {
 	if (admins.includes(message.author.username)) {
+		if (args[2] !== 'true' && args[2] !== 'false' && args.length > 2) {
+			sendMessage(message, 'Invalid command state. Please use \'true\' or \'false\'.');
+			return;
+		}
+
 		commandPermissions.updateOne({'command': args[1]}, {$set: {'enabled': (args[2] === 'true')}}, {}, (error, result) => {
 			if (error) {
 				sendMessage(message, 'Error in setting permission. @Oscar please fix me');
 				console.log(error);
+				return;
+			}
+
+			if (result.matchedCount === 0)	{
+				sendMessage(message, 'Attempt to change permission failed. Command either does not exist or is not set to be permission controlled.');
+			} else if (result.matchedCount === 1)	{
+				sendMessage(message, 'Command **' + args[1] + '** is now ' + (args[2] === 'true' ? 'enabled' : 'disabled'));
+			} else {
+				sendMessage(message, 'Something went bad with setting command permission. @Oscar please fix me');
 			}
 		});
+	} else {
+		sendMessage(message, 'You\'re not an admin!');
+	}
+};
 
-		sendMessage(message, 'Command **' + args[1] + '** is now ' + (args[2] === 'true' ? 'enabled' : 'disabled'));
+commands.xkcd = function (message, args) {
+	if (correctNumberOfArgs(message, args, 2) === false) {
+		return;
+	}
+
+	let content = 'https://xkcd.com/';
+
+	if (args.length === 1) {
+		sendMessage(message, content);
+	} else {
+		if (isNumber(args[1]) === false) {
+			sendMessage(message, 'Please send a number and ONLY a number as the argument.');
+		} else {
+			sendMessage(message, content + args[1]);
+		}
+	}
+};
+
+commands.delete = function (message, args) {
+	if (correctNumberOfArgs(message, args, 2) === false) {
+		return;
+	}
+
+	if (args.length === 1) {
+		message.channel.bulkDelete(2).catch(console.error);
+	} else {
+		if (isNumber(args[1]) === false) {
+			sendMessage(message, 'Please send a number and ONLY a number as the argument.');
+		} else {
+			if (args[1] < 1 || args[1] > 99) {
+				sendMessage(message, 'Please choose a number between 1 and 99 (inclusive).');
+				return;
+			}
+
+			message.channel.bulkDelete(parseInt(args[1]) + 1).catch(console.error);
+		}
 	}
 };
 
